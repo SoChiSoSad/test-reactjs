@@ -21,7 +21,10 @@ const Login = () => {
       if (response.status === 200 && data.status === 'success') {
         // Lưu trữ hoặc xử lý token
         console.log('Đăng nhập thành công:', data.user);
-
+        const { role, token, user_id } = data.user; // Assuming user data structure
+        localStorage.setItem('user_role', role);
+        localStorage.setItem('user_token', token);
+        localStorage.setItem('user_id', user_id);
         // Chuyển hướng đến trang menu
         navigate('/menu');
       } else {
