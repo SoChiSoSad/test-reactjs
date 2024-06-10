@@ -1,39 +1,56 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
+import { useAuth } from '../service/authService';
+
 
 const Login = () => {
+  const { user, setUser } = useAuth();
   const [username, setUsername] = useState('');
+  const [usernameError, setUsernameError] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const navigate = useNavigate(); // Initialize useNavigate
 
   const handleLogin = async (e) => {
     e.preventDefault(); // Ngăn chặn hành vi mặc định của form (submit và reload trang)
 
     try {
-      const response = await fetch('http://localhost:8000/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+      const response = await axios.post('http://localhost:8000/api/login', {
+        username: username,
+        password: password
       });
 
-      const data = await response.json();
+      if (response.status === 200) {
+        const token = response.data.token;
+        const role = response.data.role;
+        const user_id = response.data.user_id;
 
-      if (response.status === 200 && data.status === 'success') {
-        // Lưu trữ hoặc xử lý token
-        console.log('Đăng nhập thành công:', data.user);
-        const { role, token, user_id } = data.user; // Assuming user data structure
-        localStorage.setItem('user_role', role);
         localStorage.setItem('user_token', token);
+        localStorage.setItem('user_role', role);
         localStorage.setItem('user_id', user_id);
-        // Chuyển hướng đến trang menu
-        navigate('/menu');
+
+        setUser(token);
+        setUser(role);
+        setUser(user_id);
+
+        navigate('/menu')
       } else {
-        console.error('Đăng nhập thất bại:', data.message);
+        setUsernameError('Username không hợp lệ')
+        setPasswordError('Password không hợp lệ')
+        console.error('Đăng nhập không thành công');
       }
     } catch (error) {
-      console.error('Lỗi:', error);
+      console.error('Đăng nhập thất bại:', error.message);
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      navigate('/menu')
+    }
+  }, [navigate, user]);
+
 
   return (
     <div>
